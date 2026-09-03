@@ -1,0 +1,42 @@
+project:
+  name: AtmosAlert
+  region: India
+
+grid:
+  crs: EPSG:4326
+  spatial_resolution_km: 4
+  temporal_resolution_minutes: 15
+
+forecast:
+  horizons_hours: [2, 4, 6]
+  event_types:
+    - severe_thunderstorm
+    - cloudburst
+    - flash_flood
+
+features:
+  dynamic:
+    - integrated_water_vapor
+    - iwv_tendency
+    - cape
+    - cin
+    - low_level_convergence
+    - vertical_wind_shear
+    - cloud_top_temperature
+    - cloud_top_temperature_drop_rate
+    - quantitative_precipitation_estimate
+  static:
+    - elevation
+    - slope
+    - drainage_accumulation
+
+alerts:
+  watch_probability: 0.55
+  warning_probability: 0.75
+  emergency_probability: 0.90
+  stale_input_minutes: 30
+
+sources:
+  reanalysis: imdaa
+  satellite: insat_3d_3dr
+  elevation: dem
