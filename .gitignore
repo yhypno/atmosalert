@@ -1,59 +1,36 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyd
-*.so
-*.egg-info/
-.Python
-build/
-dist/
-
-# Virtual environments
+# Python and local tools
 .venv/
 venv/
-env/
-
-# Test, lint, and type-check caches
-.coverage
-.coverage.*
-htmlcov/
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
 .pytest_cache/
 .ruff_cache/
-.mypy_cache/
-.tox/
+.ipynb_checkpoints/
 
-# Local environment and secrets
+# Frontend dependencies and build cache
+node_modules/
+.vite/
+.next/
+
+# Credentials and local configuration
 .env
 .env.*
-!.env.example
 *.pem
 *.key
 
-# Data and generated artifacts
-data/raw/**
-data/interim/**
-data/processed/**
-data/external/**
-!data/**/.gitkeep
-models/**
-!models/.gitkeep
-artifacts/
-outputs/
-runs/
+# Downloaded data and generated models
+data/*
+!data/.gitkeep
 *.ckpt
 *.onnx
 *.pt
 *.pth
 
-# Notebook artifacts
-.ipynb_checkpoints/
-
-# Editors and operating systems
+# Editor and operating-system files
 .DS_Store
-Thumbs.db
 .idea/
 .vscode/
-*.swp
-
-# Logs
 *.log

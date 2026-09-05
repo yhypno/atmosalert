@@ -1,6 +1,6 @@
 import pytest
 
-from atmosalert.alerts.policy import AlertLevel, classify_probability
+from backend.alerts import AlertLevel, classify_probability
 
 
 @pytest.mark.parametrize(

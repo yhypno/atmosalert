@@ -1,132 +1,66 @@
 # AtmosAlert
 
-AI-driven hyper-local early warning for severe thunderstorms, cloudbursts, and
-flash floods across India.
+An early prototype for thunderstorm, cloudburst, and flash-flood warnings with
+a target lead time of 2–6 hours.
 
-> **Project status:** early scaffold. The API and project boundaries are in
-> place, but live data connectors and a trained forecasting model are not yet
-> included. Do not use this repository for operational weather decisions.
+The API and basic alert thresholds work. Live data ingestion, a trained model,
+and a map dashboard are still to be built. Forecast requests return `503`
+until a model is implemented.
 
-## Goal
-
-AtmosAlert is intended to fuse satellite, reanalysis, and terrain data into a
-shared spatiotemporal model that produces event-specific risk maps with a 2–6
-hour lead time. The system focuses on precursors spanning:
-
-- moisture: Integrated Water Vapor (IWV) and its rate of change;
-- instability: CAPE and CIN;
-- lift and storm structure: convergence and vertical wind shear;
-- observation: Cloud Top Temperature (CTT) drop rate and precipitation;
-- terrain: elevation, slope, and drainage characteristics.
-
-## Proposed flow
+## Structure
 
 ```text
-IMDAA + INSAT-3D/3DR + DEM
-             │
-             ▼
-      ingest and validate
-             │
-             ▼
- align to a common space-time grid
-             │
-             ▼
- derive IWV / CTT / instability / terrain features
-             │
-             ▼
- shared spatiotemporal backbone
-       ┌─────┼─────────┐
-       ▼     ▼         ▼
- thunderstorm  cloudburst  flash-flood heads
-       └─────┼─────────┘
-             ▼
- risk maps + explanations + categorized alerts
-             │
-             ▼
-        API and dashboard
+frontend/
+  src/           Web dashboard code (to be built)
+backend/
+  app.py         FastAPI routes, request validation, and health check
+  alerts.py      Probability-to-alert thresholds
+model/
+  predict.py     Prediction entry point (currently reports unavailable)
+data/            Local datasets and model weights (ignored by Git)
+tests/           API and alert tests
+pyproject.toml   Shared Python dependencies and test/lint settings
+uv.lock          Locked Python dependencies
 ```
 
-More detail is available in [docs/architecture.md](docs/architecture.md).
+The flow is **frontend → backend → model**. The model receives plain Python
+values and does not import FastAPI or backend code. The backend validates
+requests, calls the model, and handles HTTP responses and alerts.
 
-## Repository layout
+As the ML work starts, add `model/data.py` for downloading/preparing inputs and
+`model/train.py` for training. Keep downloaded datasets and generated weights in
+`data/`. Add frontend tooling inside `frontend/` when building the dashboard.
+Both Python folders use the same environment; no separate services are needed.
 
-```text
-atmosalert/
-├── dashboard/                Future web map and operator interface
-├── configs/                  Runtime and model configuration
-├── data/                     Local-only raw/intermediate/processed data
-├── docs/                     Architecture and data-contract notes
-├── models/                   Local-only trained artifacts
-├── notebooks/                Exploration and experiments
-├── src/atmosalert/
-│   ├── alerts/               Alert thresholds and policies
-│   ├── api/                  FastAPI routes and schemas
-│   ├── core/                 Settings and shared infrastructure
-│   ├── features/             Atmospheric and terrain feature engineering
-│   ├── ingestion/            IMDAA, INSAT, and DEM connectors
-│   ├── models/               Multi-task model interfaces
-│   └── pipelines/            Training and inference orchestration
-└── tests/                    Automated tests
-```
+## Run
 
-## Quick start
-
-Requirements: Python 3.11+.
+Requires Python 3.11+ and uv. Run from the project folder:
 
 ```bash
-cp .env.example .env
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -e '.[dev]'
-uvicorn atmosalert.api.app:app --reload
+uv sync --extra dev
+uv run uvicorn backend.app:app --reload
 ```
 
-Then open `http://127.0.0.1:8000/docs` or check the service:
+Open [API docs](http://127.0.0.1:8000/docs) or
+[health](http://127.0.0.1:8000/v1/health).
+
+The environment defaults to `development`. Set `ATMOSALERT_ENVIRONMENT` in your
+shell to override it; the app does not load `.env` files automatically.
+
+## Check
 
 ```bash
-curl http://127.0.0.1:8000/v1/health
+uv run ruff check .
+uv run pytest
 ```
 
-The `/v1/nowcasts` endpoint intentionally returns `503 Service Unavailable`
-until an inference adapter is configured.
+## Next
 
-## Common commands
+1. Load a real INSAT sequence for one region into `data/`.
+2. Build and evaluate a baseline forecast using historical events.
+3. Implement inference in `model/predict.py`, then add the frontend map and test
+   alert delivery. The backend already calls this prediction entry point.
 
-```bash
-make install   # install development dependencies
-make run       # start the local API
-make lint      # run Ruff checks
-make format    # format Python sources
-make test      # run tests
-make check     # lint and test
-```
-
-## Configuration
-
-Safe defaults live in `configs/default.yaml`. Environment variables use the
-`ATMOSALERT_` prefix; see `.env.example` for local overrides. Secrets, raw data,
-model weights, and generated forecasts must not be committed.
-
-## Initial milestones
-
-1. Define access and licensing for IMDAA, MOSDAC/INSAT, QPE, and DEM datasets.
-2. Build resumable ingestion and a versioned common-grid data contract.
-3. Establish persistence and climatology baselines before deep learning.
-4. Implement feature derivation and leakage-safe temporal evaluation.
-5. Train and calibrate the shared-backbone, multi-head model.
-6. Add geospatial risk tiles, explainability, alert delivery, and a dashboard.
-7. Validate with domain experts and documented operational safety thresholds.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow. When
-reporting results, include spatial resolution, forecast horizon, event
-definition, calibration, and false-alarm metrics—not accuracy alone.
-
-## Safety
-
-AtmosAlert is a research prototype. Public warnings should only be issued after
-validation and integration with authorized meteorological and disaster
-management agencies. Every forecast should retain its source-data timestamps,
-model version, confidence, and an explicit stale-data state.
+IMDAA supplies historical training data. Current atmospheric inputs need a
+verified timely source. Keep credentials and downloaded data out of Git.
+The prototype thresholds are unvalidated and are not operational warning rules.

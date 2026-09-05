@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from atmosalert.api.app import app
+from backend.app import app
 
 client = TestClient(app)
 

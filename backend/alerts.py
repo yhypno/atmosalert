@@ -1,4 +1,4 @@
-"""Probability-to-alert policy independent of the delivery channel."""
+"""Basic alert thresholds used by the backend."""
 
 from dataclasses import dataclass
 from enum import StrEnum

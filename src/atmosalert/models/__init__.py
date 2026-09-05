@@ -1,1 +1,0 @@
-"""Model interfaces and implementations."""
